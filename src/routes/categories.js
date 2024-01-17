@@ -2,19 +2,12 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db");
 
-const find0ne = (id) =>{
-  return (query ={
-    name: "fetch-category",
-    text: "SELECT * FROM categories WHERE id = $1",
-    values: [Number(id)],
-
-  });
-};
+const categoriesQueries = require('../queries/categories');
 
 
 router.get("/", (req, res) =>{
   try{
-    db.query(" SELECT * FROM categories ORDER BY name ASC ", (error, response) =>{
+    db.query(" SELECT * FROM categories ORDER BY id ASC ", (error, response) =>{
       if (error){
         return res.status(500).json(error);
       }
@@ -29,7 +22,7 @@ router.get("/", (req, res) =>{
 
 router.post("/", (req, res) =>{
   try{
-    const {name } = req.body;
+    const { name } = req.body;
   if(name.length < 3){
     return res
     .status(400)
@@ -37,7 +30,7 @@ router.post("/", (req, res) =>{
   }
 
   const text = "INSERT INTO categories(name) VALUES($1) RETURNING*";
-  const values = ["name"];
+  const values = [name];
 
  db.query(text,values, (error, response) =>{
   if (error){
@@ -60,7 +53,7 @@ router.delete("/:id", async (req, res) =>{
   if (!id){
     return res.status(400).json({ error: "Param id is mandatory."});
   }
-  const query = find0ne(id);
+  const query = categoriesQueries.findById(id);
   const category = await db.query(query);
 
  if(!category.rows[0]){
@@ -98,7 +91,7 @@ try {
     .json({error: "Name should have more than 3 character"});
   }
 
-  const query = find0ne(id);
+  const query = categoriesQueries.findById(id);
   const category = await db.query(query);
 
  if(!category.rows[0]){
